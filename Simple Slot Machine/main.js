@@ -13,10 +13,13 @@ var mainState = {
 
     update: function() {
         if(DoLineAnimation){
-            for(var i = 0; i < 5; i++){
-                if(WonLine(i)){
-                   LightLineWin(i);
-                }
+            for(var i = 0; i <5; i++){
+                if(currentBet>i){
+                    if(WonLine(i)){
+                    AddReward(i);
+                    LightLineWin(i);
+                    }
+             }
             }
         }
         if(!leftSpinning && !midSpinning && !rightSpinning){
@@ -87,7 +90,12 @@ var mainState = {
     },
     //Set up a new spin, reseting all flags and randomly generating a timer for each reel to stop
     spin: function(){
+        
         if(!spinning){
+            if(currentNumberOfCredits >= currentBet){
+            LinesRewarded = [false,false,false,false,false];
+            currentNumberOfCredits -= currentBet;
+            currCreditsLabel.text = "C: " + currentNumberOfCredits;
             DoLineAnimation = false;
             isReadyForNew = false;
             this.generateReel();
@@ -103,7 +111,9 @@ var mainState = {
             timers[2] = Math.floor(Math.random() * 5) + 3;
             game.time.events.add(Phaser.Timer.SECOND * timers[0], this.stopLeftReel, this);
             game.time.events.add(Phaser.Timer.SECOND * timers[1], this.stopMidReel, this);
-            game.time.events.add(Phaser.Timer.SECOND * timers[2], this.stopRightReel, this);
+            game.time.events.add(Phaser.Timer.SECOND * timers[2], this.stopRightReel, this);  
+            }
+            
         }
     },
     //Stop each individual reel, when the timer triggers the event

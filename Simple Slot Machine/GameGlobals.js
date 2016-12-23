@@ -37,6 +37,19 @@ var RightLine3;
 var RightLine4;
 var RightLine5;
 
+
+//Player logic and UI buttons and labels
+var BetMoreLinesButton;
+var BetLessLinesButton;
+var DisplayCredits;
+var DisplayBet;
+var BuyCredits;
+var SpinButton;
+
+var currentBet,currentNumberOfCredits,currCredits,lineBet,currCreditsLabel,lineBetLabel;
+
+var LinesRewarded = [false,false,false,false,false];
+
 //Check if everything is ready for a new spin
 var isReadyForNew = true;
 
@@ -61,12 +74,20 @@ function PreloadSlotMachineGame(){
         game.load.image('line_3', 'assets/Numbers/3.png');
         game.load.image('line_4', 'assets/Numbers/4.png');
         game.load.image('line_5', 'assets/Numbers/5.png');
+        //UI elements
+        game.load.image('arrow_back', 'assets/UI/arrow_back.png');
+        game.load.image('arrow_forward', 'assets/UI/arrow_forward.png');
+        game.load.image('display_panel', 'assets/UI/btn_empty.png');
+        game.load.image('buy_credit', 'assets/UI/buy_credit.png');
+        game.load.image('start_spin', 'assets/UI/circle_btn.png');
+
+
 }
 //Create function
 function CreateSlotMachineGame(gameVar,contextVar){
     //Spacebar input, to start a spin
-    spaceKey = gameVar.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-    spaceKey.onDown.add(contextVar.spin, contextVar);
+   /* spaceKey = gameVar.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    spaceKey.onDown.add(contextVar.spin, contextVar);*/
 
     //Add layers to keep slots in the back
     contextVar.reels_layer = gameVar.add.group();
@@ -98,6 +119,78 @@ function CreateSlotMachineGame(gameVar,contextVar){
         frames[i] = contextVar.background_layer.create(815,(i * 160) + 80,'slot_frame');
     }
 
+    //Create UI elements
+    BetLessLinesButton = contextVar.background_layer.create(400,600,'arrow_back');
+    BetMoreLinesButton = contextVar.background_layer.create(671,600,'arrow_forward');
+    DisplayCredits = contextVar.background_layer.create(459,610,'display_panel');
+    DisplayBet = contextVar.background_layer.create(459,684,'display_panel');
+    BuyCredits = contextVar.background_layer.create(250,684,'buy_credit');
+    BuyCredits.anchor.setTo(0.5,0.5);
+    BuyCredits.scale.setTo(2,2);
+    SpinButton = contextVar.background_layer.create(800,585,'start_spin');
+
+    
+
+    currentBet = 0;
+    currentNumberOfCredits = 0;
+    currCredits = "C: ";
+    lineBet = "Line Bet: ";
+    currCreditsLabel = game.add.text(470, 630, currCredits, { font: "30px Arial", fill: "#000000" }); 
+    lineBetLabel = game.add.text(470, 704, lineBet, { font: "30px Arial", fill: "#000000" }); 
+
+    //Add event listeners
+    BetMoreLinesButton.inputEnabled = true;
+    BetMoreLinesButton.events.onInputDown.add(IncreaseBet, contextVar);
+
+    BetLessLinesButton.inputEnabled = true;
+    BetLessLinesButton.events.onInputDown.add(DecreaseBet, contextVar);
+
+    BuyCredits.inputEnabled = true;
+    BuyCredits.events.onInputDown.add(AddCredit, contextVar);
+
+    SpinButton.inputEnabled = true;
+    SpinButton.events.onInputDown.add(SpinStartButton,contextVar);
+
+}
+
+function IncreaseBet(){
+        if(!spinning){
+        currentBet++;
+        if(currentBet > 5)
+            currentBet = 5;
+        lineBetLabel.text = "Line Bet: " + currentBet;
+         DoLineAnimation = false;
+    }
+}
+
+function DecreaseBet(){
+    if(!spinning){
+    currentBet--;
+    if(currentBet < 1)
+        currentBet = 1;
+    lineBetLabel.text = "Line Bet: " + currentBet;
+     DoLineAnimation = false;
+    }
+}
+
+function AddCredit(){
+    currentNumberOfCredits++;
+    currCreditsLabel.text = "C: " + currentNumberOfCredits;
+     DoLineAnimation = false;
+}
+
+function SpinStartButton(){
+    if(currentNumberOfCredits >0 && currentBet > 0)
+    this.spin();
+}
+
+function AddReward(lineNo){
+    if(!LinesRewarded[lineNo]){
+    LinesRewarded[lineNo] = true;
+    var LineWinner = GetLine(lineNo+1);
+    currentNumberOfCredits+=2*LineWinner[0];
+    currCreditsLabel.text = "C: " + currentNumberOfCredits
+    }
 }
 
 //Move the slots down to give a spinning effect. The slots are stored in an array. A slot moves until it hits the bottom of the reel, and then it goes from the end of the array to the start
